@@ -30,5 +30,10 @@
   "action": {
     "default_title": "Sholat Reminder",
     "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "icon-sholat.png",
+    "48": "icon-sholat.png",
+    "128": "icon-sholat.png"
   }
 }

@@ -19,9 +19,9 @@
       .muted { font-size: 12px; opacity: .85; }
       .title { font-size: 16px; font-weight: 700; }
       .pill { background:#0b74da; color:#fff; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:700; }
-      input, select { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid #233055; background: #0f1830; color: #e6ecff; }
-      label { font-size: 12px; opacity: .8; }
-      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      input, select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #233055; background: #0f1830; color: #e6ecff; box-sizing: border-box; }
+      label { font-size: 12px; opacity: .8; margin-bottom: 4px; display: block; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
       .footer { display:flex; gap:8px; margin-top:10px; flex-wrap: wrap; }
       /* Autocomplete */
       .ac-wrap { position: relative; }
@@ -52,8 +52,10 @@
       <div class="card">
         <div class="row"><div>Imsak</div><div id="tImsak">--:--</div></div>
         <div class="row"><div>Subuh</div><div id="tFajr">--:--</div></div>
-        <div class="row"><div>Zuhur</div><div id="tDhuhr">--:--</div></div>
-        <div class="row"><div>Asar</div><div id="tAsr">--:--</div></div>
+        <div class="row"><div>Terbit</div><div id="tSunrise">--:--</div></div>
+        <div class="row"><div>Dhuha</div><div id="tDhuha">--:--</div></div>
+        <div class="row"><div>Dzuhur</div><div id="tDhuhr">--:--</div></div>
+        <div class="row"><div>Ashar</div><div id="tAsr">--:--</div></div>
         <div class="row"><div>Maghrib</div><div id="tMaghrib">--:--</div></div>
         <div class="row"><div>Isya</div><div id="tIsha">--:--</div></div>
       </div>
@@ -70,7 +72,7 @@
             <input id="country" placeholder="Contoh: Indonesia" />
           </div>
         </div>
-        <div class="grid" style="margin-top:8px;">
+        <div class="grid" style="margin-top:12px;">
           <div>
             <label>Metode</label>
             <select id="method">
@@ -96,6 +98,10 @@
           <button class="btn" id="btnSave">Simpan</button>
         </div>
         <div class="muted" id="locInfo" style="margin-top:6px;">Lokasi: —</div>
+        <div style="margin-top: 12px; text-align: center; font-size: 11px; opacity: 0.7;">
+          <span>© 2025 </span>
+          <a href="https://github.com/latiefahmad/sholat-reminder" target="_blank" style="color: #1b64d1; text-decoration: none;">latiefahmad</a>
+        </div>
       </div>
     </div>
 
