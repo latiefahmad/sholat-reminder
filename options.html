@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sholat Reminder — Options</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+      .row { display: grid; grid-template-columns: 160px 1fr; gap: 12px; align-items: center; margin-bottom: 12px; }
+      input, select, button { padding: 8px 10px; font-size: 14px; }
+      button { border: 0; border-radius: 8px; background: #0b74da; color: white; font-weight: 600; cursor: pointer; }
+      button:hover { filter: brightness(.95); }
+      .card { background: #f8fafc; border-radius: 12px; padding: 16px; margin-top: 18px; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { text-align: left; padding: 8px; }
+      th { border-bottom: 1px solid #e2e8f0; }
+      .hint { color: #475569; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <h1>Sholat Reminder — Pengaturan</h1>
+    <div class="row"><label>Kota</label><input id="city" placeholder="Contoh: Jakarta" /></div>
+    <div class="row"><label>Negara</label><input id="country" placeholder="Contoh: Indonesia" /></div>
+    <div class="row"><label>Metode</label>
+      <select id="method">
+        <option value="20">Moonsighting Committee Worldwide (Default)</option>
+        <option value="2">University of Islamic Sciences, Karachi</option>
+        <option value="3">Islamic Society of North America</option>
+        <option value="5">Egyptian General Authority of Survey</option>
+        <option value="13">Umm Al-Qura University, Makkah</option>
+        <option value="15">Gulf Region</option>
+        <option value="1">Muslim World League</option>
+      </select>
+    </div>
+    <div class="row"><label>Madzhab (Asr)</label>
+      <select id="school">
+        <option value="0">Shafi</option>
+        <option value="1">Hanafi</option>
+      </select>
+    </div>
+    <div class="row"><div></div><button id="save">Simpan & Jadwalkan Ulang</button></div>
+    <p class="hint">Anda dapat mengaktifkan geolokasi dari popup untuk jadwal berbasis koordinat.</p>
+
+    <div class="card">
+      <h3>Jadwal Hari Ini</h3>
+      <div id="todayTimes">Memuat…</div>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>
