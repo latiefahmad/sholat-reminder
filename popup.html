@@ -8,8 +8,8 @@
       :root { color-scheme: dark; }
       body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #0b1220; color: #e6ecff; width: 340px; }
       .wrap { padding: 14px 14px 16px; }
-      .header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
-      .subtle { opacity: .8; font-size: 12px; }
+      .header { display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: 700; text-align: center; }
+      .subtle { opacity: .8; font-size: 11px; line-height: 1.2; }
       .card { background: #0f1830; border: 1px solid #1c2744; border-radius: 14px; padding: 12px; margin-top: 10px; }
       .row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
       .row + .row { border-top: 1px dashed #233055; }
@@ -22,7 +22,7 @@
       input, select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #233055; background: #0f1830; color: #e6ecff; box-sizing: border-box; }
       label { font-size: 12px; opacity: .8; margin-bottom: 4px; display: block; }
       .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-      .footer { display:flex; gap:8px; margin-top:10px; flex-wrap: wrap; }
+      .footer { display:flex; gap:8px; margin-top:10px; flex-wrap: wrap; justify-content: center; }
       /* Autocomplete */
       .ac-wrap { position: relative; }
       .ac-list { position: absolute; top: 100%; left: 0; right: 0; background: #0f1830; border: 1px solid #233055; border-radius: 10px; max-height: 180px; overflow: auto; z-index: 5; display: none; }
@@ -36,6 +36,7 @@
       <div class="header">
         <div>Pengingat Waktu Salat</div>
         <div class="subtle" id="today"></div>
+        <div class="subtle" id="hijriDate">—</div>
       </div>
 
       <div class="card">
@@ -97,7 +98,8 @@
           <button class="btn" id="btnGeo">Ambil Lokasi</button>
           <button class="btn" id="btnSave">Simpan</button>
         </div>
-        <div class="muted" id="locInfo" style="margin-top:6px;">Lokasi: —</div>
+        <div class="muted" id="locInfo" style="margin-top:6px; text-align: center;">Lokasi: —</div>
+        <div class="muted" id="methodInfo" style="text-align: center; margin-top: 2px;">Metode: —, Madzhab: —</div>
         <div style="margin-top: 12px; text-align: center; font-size: 11px; opacity: 0.7;">
           <span>© 2025 </span>
           <a href="https://github.com/latiefahmad/sholat-reminder" target="_blank" style="color: #1b64d1; text-decoration: none;">latiefahmad</a>

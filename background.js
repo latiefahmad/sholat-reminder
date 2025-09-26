@@ -76,23 +76,12 @@ async function scheduleTodayAlarms() {
   });
 }
 
-function notifyTabs(prayerName) {
-  const payload = { type: 'SHOW_PRAYER_MODAL', prayerName, quote: randomQuote() };
-  chrome.tabs.query({}, tabs => {
-    for (const tab of tabs) {
-      if (tab.id !== undefined) {
-        chrome.tabs.sendMessage(tab.id, payload, () => void chrome.runtime.lastError);
-      }
-    }
-  });
-}
 
 chrome.runtime.onInstalled.addListener(scheduleTodayAlarms);
 chrome.runtime.onStartup.addListener(scheduleTodayAlarms);
 chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name.startsWith('pray:')) {
     const prayerName = alarm.name.split(':')[1];
-    notifyTabs(prayerName);
     scheduleTodayAlarms();
   }
   if (alarm.name === 'refresh:tomorrow') scheduleTodayAlarms();

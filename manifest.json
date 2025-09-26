@@ -6,7 +6,6 @@
   "permissions": [
     "storage",
     "alarms",
-    "tabs",
     "geolocation"
   ],
   "host_permissions": [
@@ -15,17 +14,6 @@
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content.js"
-      ],
-      "run_at": "document_idle"
-    }
-  ],
   "options_page": "options.html",
   "action": {
     "default_title": "Sholat Reminder",
