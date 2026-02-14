@@ -3,47 +3,106 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sholat Reminder — Options</title>
+    <title>Sholat Reminder - Options</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
-      .row { display: grid; grid-template-columns: 160px 1fr; gap: 12px; align-items: center; margin-bottom: 12px; }
-      input, select, button { padding: 8px 10px; font-size: 14px; }
-      button { border: 0; border-radius: 8px; background: #0b74da; color: white; font-weight: 600; cursor: pointer; }
-      button:hover { filter: brightness(.95); }
-      .card { background: #f8fafc; border-radius: 12px; padding: 16px; margin-top: 18px; }
+      :root {
+        --bg: #f6f2e8;
+        --card: #fffdf8;
+        --border: #e6dbc5;
+        --text: #2e271a;
+        --muted: #74654a;
+        --accent: #1f7a57;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
+        color: var(--text);
+        background: linear-gradient(145deg, var(--bg), #efe6d4);
+      }
+
+      .container { max-width: 760px; margin: 0 auto; }
+      h1 { margin-top: 0; }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 180px minmax(0, 1fr);
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      input,
+      select,
+      button {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid #ddcfb4;
+        font-size: 14px;
+      }
+
+      button {
+        border: 0;
+        background: var(--accent);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .hint { color: var(--muted); font-size: 13px; }
       table { width: 100%; border-collapse: collapse; }
-      th, td { text-align: left; padding: 8px; }
-      th { border-bottom: 1px solid #e2e8f0; }
-      .hint { color: #475569; font-size: 13px; }
+      th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee3cf; }
+
+      @media (max-width: 600px) {
+        body { padding: 14px; }
+        .row { grid-template-columns: 1fr; margin-bottom: 14px; }
+      }
     </style>
   </head>
   <body>
-    <h1>Sholat Reminder — Pengaturan</h1>
-    <div class="row"><label>Kota</label><input id="city" placeholder="Contoh: Jakarta" /></div>
-    <div class="row"><label>Negara</label><input id="country" placeholder="Contoh: Indonesia" /></div>
-    <div class="row"><label>Metode</label>
-      <select id="method">
-        <option value="20">Moonsighting Committee Worldwide (Default)</option>
-        <option value="2">University of Islamic Sciences, Karachi</option>
-        <option value="3">Islamic Society of North America</option>
-        <option value="5">Egyptian General Authority of Survey</option>
-        <option value="13">Umm Al-Qura University, Makkah</option>
-        <option value="15">Gulf Region</option>
-        <option value="1">Muslim World League</option>
-      </select>
-    </div>
-    <div class="row"><label>Madzhab (Asr)</label>
-      <select id="school">
-        <option value="0">Shafi</option>
-        <option value="1">Hanafi</option>
-      </select>
-    </div>
-    <div class="row"><div></div><button id="save">Simpan & Jadwalkan Ulang</button></div>
-    <p class="hint">Anda dapat mengaktifkan geolokasi dari popup untuk jadwal berbasis koordinat.</p>
+    <div class="container">
+      <h1>Sholat Reminder - Pengaturan</h1>
+      <div class="card">
+        <div class="row"><label>Kota</label><input id="city" placeholder="Contoh: Jakarta" /></div>
+        <div class="row"><label>Negara</label><input id="country" placeholder="Contoh: Indonesia" /></div>
+        <div class="row">
+          <label>Metode</label>
+          <select id="method">
+            <option value="20">Moonsighting Committee Worldwide (Default)</option>
+            <option value="2">University of Islamic Sciences, Karachi</option>
+            <option value="3">Islamic Society of North America</option>
+            <option value="5">Egyptian General Authority of Survey</option>
+            <option value="13">Umm Al-Qura University, Makkah</option>
+            <option value="15">Gulf Region</option>
+            <option value="1">Muslim World League</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Madzhab (Asr)</label>
+          <select id="school">
+            <option value="0">Shafi</option>
+            <option value="1">Hanafi</option>
+          </select>
+        </div>
+        <div class="row"><div></div><button id="save">Simpan & Jadwalkan Ulang</button></div>
+        <p class="hint">Anda dapat mengaktifkan geolokasi dari popup untuk jadwal berbasis koordinat.</p>
+      </div>
 
-    <div class="card">
-      <h3>Jadwal Hari Ini</h3>
-      <div id="todayTimes">Memuat…</div>
+      <div class="card" style="margin-top: 16px;">
+        <h3>Jadwal Hari Ini</h3>
+        <div id="todayTimes">Memuat...</div>
+      </div>
     </div>
 
     <script src="options.js"></script>

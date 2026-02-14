@@ -1,13 +1,13 @@
-// background.js (service worker) — v4.2
+// background.js (service worker) - v4.3
 const API_CITY = 'https://api.aladhan.com/v1/timingsByCity';
 const API_COORD = 'https://api.aladhan.com/v1/timings';
 
 const QUOTES = [
-  "Sholat adalah tiang agama.",
-  "Sesungguhnya sholat mencegah dari perbuatan keji dan mungkar. (QS. 29:45)",
-  "Dirikanlah sholat untuk mengingat-Ku. (QS. 20:14)",
-  "Jangan tinggalkan sholat, karena ia cahaya bagi hati.",
-  "Amal pertama yang dihisab adalah sholat."
+  'Sholat adalah tiang agama.',
+  'Sesungguhnya sholat mencegah dari perbuatan keji dan mungkar. (QS. 29:45)',
+  'Dirikanlah sholat untuk mengingat-Ku. (QS. 20:14)',
+  'Jangan tinggalkan sholat, karena ia cahaya bagi hati.',
+  'Amal pertama yang dihisab adalah sholat.'
 ];
 
 const DEFAULT_SETTINGS = {
@@ -20,36 +20,59 @@ const DEFAULT_SETTINGS = {
   lng: null
 };
 
-function randomQuote() { return QUOTES[Math.floor(Math.random() * QUOTES.length)]; }
+function randomQuote() {
+  return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+}
+
+function showPrayerNotification(prayerName) {
+  chrome.notifications.create(`pray-${Date.now()}`, {
+    type: 'basic',
+    iconUrl: 'icon-sholat.png',
+    title: 'Pengingat Waktu Salat',
+    message: `${prayerName} sudah masuk. ${randomQuote()}`,
+    priority: 2
+  });
+}
+
 function nextMidnightPlus(minutes = 5) {
-  const now = new Date(); const nxt = new Date(now);
-  nxt.setHours(24, 0, 0, 0); return nxt.getTime() + minutes * 60 * 1000;
+  const now = new Date();
+  const nxt = new Date(now);
+  nxt.setHours(24, 0, 0, 0);
+  return nxt.getTime() + minutes * 60 * 1000;
 }
+
 function parse24hToTodayMillis(timeStr) {
-  const [hh, mm] = String(timeStr).substring(0,5).split(':').map(Number);
-  const d = new Date(); d.setSeconds(0,0); d.setHours(hh||0, mm||0, 0, 0); return d.getTime();
+  const [hh, mm] = String(timeStr).substring(0, 5).split(':').map(Number);
+  const d = new Date();
+  d.setSeconds(0, 0);
+  d.setHours(hh || 0, mm || 0, 0, 0);
+  return d.getTime();
 }
-const getSettings = () => new Promise(r => chrome.storage.sync.get(DEFAULT_SETTINGS, r));
+
+const getSettings = () => new Promise((resolve) => chrome.storage.sync.get(DEFAULT_SETTINGS, resolve));
 
 async function fetchTimings(settings) {
-  let url = '';
-  if (settings.useCoords && typeof settings.lat === 'number' && typeof settings.lng === 'number') {
-    url = `${API_COORD}?latitude=${settings.lat}&longitude=${settings.lng}&method=${encodeURIComponent(settings.method)}&school=${encodeURIComponent(settings.school)}&iso8601=true`;
-  } else {
-    url = `${API_CITY}?city=${encodeURIComponent(settings.city)}&country=${encodeURIComponent(settings.country)}&method=${encodeURIComponent(settings.method)}&school=${encodeURIComponent(settings.school)}&iso8601=true`;
-  }
+  const hasCoords = settings.useCoords && typeof settings.lat === 'number' && typeof settings.lng === 'number';
+  const url = hasCoords
+    ? `${API_COORD}?latitude=${settings.lat}&longitude=${settings.lng}&method=${encodeURIComponent(settings.method)}&school=${encodeURIComponent(settings.school)}&iso8601=true`
+    : `${API_CITY}?city=${encodeURIComponent(settings.city)}&country=${encodeURIComponent(settings.country)}&method=${encodeURIComponent(settings.method)}&school=${encodeURIComponent(settings.school)}&iso8601=true`;
+
   const res = await fetch(url);
-  if (!res.ok) throw new Error('API ' + res.status);
+  if (!res.ok) throw new Error(`API ${res.status}`);
   const json = await res.json();
   if (!json?.data?.timings) throw new Error('No timings');
   return json.data.timings;
 }
 
 async function scheduleTodayAlarms() {
-  let settings = await getSettings();
   let timings;
-  try { timings = await fetchTimings(settings); }
-  catch(e){ console.error('Fetch timings failed', e); return; }
+  try {
+    const settings = await getSettings();
+    timings = await fetchTimings(settings);
+  } catch (e) {
+    console.error('Fetch timings failed', e);
+    return;
+  }
 
   chrome.alarms.clearAll(() => {
     const prayers = [
@@ -59,36 +82,51 @@ async function scheduleTodayAlarms() {
       ['Maghrib', timings.Maghrib],
       ['Isha', timings.Isha]
     ];
+
     const now = Date.now();
     let nextLabel = '';
     let nextWhen = Number.POSITIVE_INFINITY;
-    for (const [name, t] of prayers) {
-      if (!t) continue;
-      const when = parse24hToTodayMillis(t);
+
+    for (const [name, time] of prayers) {
+      if (!time) continue;
+      const when = parse24hToTodayMillis(time);
       if (when > now) {
         chrome.alarms.create(`pray:${name}`, { when });
-        if (when < nextWhen) { nextWhen = when; nextLabel = name; }
+        if (when < nextWhen) {
+          nextWhen = when;
+          nextLabel = name;
+        }
       }
     }
+
     chrome.action.setBadgeText({ text: nextLabel ? 'ON' : '' });
-    chrome.action.setBadgeBackgroundColor({ color: '#0b74da' });
+    chrome.action.setBadgeBackgroundColor({ color: '#1f7a57' });
     chrome.alarms.create('refresh:tomorrow', { when: nextMidnightPlus(5) });
   });
 }
 
-
 chrome.runtime.onInstalled.addListener(scheduleTodayAlarms);
 chrome.runtime.onStartup.addListener(scheduleTodayAlarms);
-chrome.alarms.onAlarm.addListener(alarm => {
+
+chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name.startsWith('pray:')) {
     const prayerName = alarm.name.split(':')[1];
+    showPrayerNotification(prayerName);
+    scheduleTodayAlarms();
+    return;
+  }
+
+  if (alarm.name === 'refresh:tomorrow') {
     scheduleTodayAlarms();
   }
-  if (alarm.name === 'refresh:tomorrow') scheduleTodayAlarms();
 });
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg?.type === 'RESCHEDULE_PRAYERS') {
-    scheduleTodayAlarms().then(() => sendResponse({ ok: true })).catch(err => sendResponse({ ok: false, error: String(err) }));
-    return true;
-  }
+  if (msg?.type !== 'RESCHEDULE_PRAYERS') return;
+
+  scheduleTodayAlarms()
+    .then(() => sendResponse({ ok: true }))
+    .catch((err) => sendResponse({ ok: false, error: String(err) }));
+
+  return true;
 });

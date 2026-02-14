@@ -6,7 +6,8 @@
   "permissions": [
     "storage",
     "alarms",
-    "geolocation"
+    "geolocation",
+    "notifications"
   ],
   "host_permissions": [
     "https://api.aladhan.com/*"

@@ -5,46 +5,167 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pengingat Waktu Salat</title>
     <style>
-      :root { color-scheme: dark; }
-      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #0b1220; color: #e6ecff; width: 340px; }
-      .wrap { padding: 14px 14px 16px; }
-      .header { display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: 700; text-align: center; }
-      .subtle { opacity: .8; font-size: 11px; line-height: 1.2; }
-      .card { background: #0f1830; border: 1px solid #1c2744; border-radius: 14px; padding: 12px; margin-top: 10px; }
-      .row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
-      .row + .row { border-top: 1px dashed #233055; }
-      .btn { border: 0; border-radius: 10px; padding: 10px 12px; background: #1b64d1; color: white; font-weight: 600; cursor: pointer; }
-      .btn.secondary { background: #22315a; }
-      .btn:disabled { opacity: .6; cursor: default; }
-      .muted { font-size: 12px; opacity: .85; }
-      .title { font-size: 16px; font-weight: 700; }
-      .pill { background:#0b74da; color:#fff; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:700; }
-      input, select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #233055; background: #0f1830; color: #e6ecff; box-sizing: border-box; }
-      label { font-size: 12px; opacity: .8; margin-bottom: 4px; display: block; }
-      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-      .footer { display:flex; gap:8px; margin-top:10px; flex-wrap: wrap; justify-content: center; }
-      /* Autocomplete */
-      .ac-wrap { position: relative; }
-      .ac-list { position: absolute; top: 100%; left: 0; right: 0; background: #0f1830; border: 1px solid #233055; border-radius: 10px; max-height: 180px; overflow: auto; z-index: 5; display: none; }
+      :root {
+        --bg-1: #f5efe2;
+        --bg-2: #ece5d5;
+        --card: #fffdf8;
+        --card-border: #e4d8bf;
+        --text: #332711;
+        --muted: #7b6846;
+        --accent: #1f7a57;
+        --accent-soft: #dff0e8;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        width: min(390px, 100vw);
+        font-family: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(120% 100% at 100% 0%, #f9f4e5 0%, transparent 60%),
+          linear-gradient(160deg, var(--bg-1), var(--bg-2));
+      }
+
+      .wrap { padding: 14px; }
+
+      .header {
+        text-align: center;
+        padding: 14px;
+        border-radius: 16px;
+        background: linear-gradient(120deg, #fff7df, #f7ecd2);
+        border: 1px solid var(--card-border);
+      }
+
+      .header-title { font-size: 17px; font-weight: 800; }
+      .subtle { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+      .card {
+        margin-top: 10px;
+        padding: 12px;
+        border-radius: 14px;
+        background: var(--card);
+        border: 1px solid var(--card-border);
+      }
+
+      .next-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .title { font-size: 18px; font-weight: 800; margin-top: 3px; }
+      .muted { font-size: 12px; color: var(--muted); }
+
+      .pill {
+        background: var(--accent-soft);
+        color: #14553d;
+        border-radius: 999px;
+        border: 1px solid #b8ddcd;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 0;
+      }
+
+      .row + .row { border-top: 1px dashed #e7dbc0; }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      input,
+      select {
+        width: 100%;
+        min-width: 0;
+        border: 1px solid #dfcfaf;
+        border-radius: 10px;
+        background: #fff;
+        color: var(--text);
+        padding: 10px;
+        font-size: 13px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .ac-wrap { min-width: 0; }
+
+      .ac-list {
+        margin-top: 6px;
+        border: 1px solid #dfcfaf;
+        border-radius: 10px;
+        background: #fff;
+        max-height: 160px;
+        overflow-y: auto;
+        display: none;
+      }
+
       .ac-item { padding: 8px 10px; cursor: pointer; }
-      .ac-item:hover { background: #1a2542; }
+      .ac-item:hover { background: #f7efe0; }
       .ac-list.show { display: block; }
+
+      .footer {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .btn {
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .btn:disabled { opacity: .65; cursor: default; }
+
+      .center { text-align: center; }
+      .copyright { margin-top: 12px; font-size: 11px; color: var(--muted); }
+      .copyright a { color: var(--accent); text-decoration: none; }
+
+      @media (max-width: 360px) {
+        .grid,
+        .footer {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="wrap">
       <div class="header">
-        <div>Pengingat Waktu Salat</div>
+        <div class="header-title">Pengingat Waktu Salat</div>
         <div class="subtle" id="today"></div>
-        <div class="subtle" id="hijriDate">—</div>
+        <div class="subtle" id="hijriDate">-</div>
       </div>
 
       <div class="card">
-        <div class="row" style="align-items:flex-start;">
+        <div class="next-row">
           <div>
             <div class="muted">Salat berikutnya</div>
-            <div class="title" id="nextName">—</div>
-            <div class="muted" id="nextTime">—</div>
+            <div class="title" id="nextName">-</div>
+            <div class="muted" id="nextTime">-</div>
           </div>
           <div class="pill" id="countdown">--:--:--</div>
         </div>
@@ -65,7 +186,7 @@
         <div class="grid">
           <div class="ac-wrap">
             <label>Kota</label>
-            <input id="city" placeholder="Contoh: Malang" autocomplete="off"/>
+            <input id="city" placeholder="Contoh: Malang" autocomplete="off" />
             <div class="ac-list" id="cityList"></div>
           </div>
           <div>
@@ -73,7 +194,8 @@
             <input id="country" placeholder="Contoh: Indonesia" />
           </div>
         </div>
-        <div class="grid" style="margin-top:12px;">
+
+        <div class="grid" style="margin-top: 10px;">
           <div>
             <label>Metode</label>
             <select id="method">
@@ -94,15 +216,18 @@
             </select>
           </div>
         </div>
+
         <div class="footer">
           <button class="btn" id="btnGeo">Ambil Lokasi</button>
           <button class="btn" id="btnSave">Simpan</button>
         </div>
-        <div class="muted" id="locInfo" style="margin-top:6px; text-align: center;">Lokasi: —</div>
-        <div class="muted" id="methodInfo" style="text-align: center; margin-top: 2px;">Metode: —, Madzhab: —</div>
-        <div style="margin-top: 12px; text-align: center; font-size: 11px; opacity: 0.7;">
-          <span>© 2025 </span>
-          <a href="https://github.com/latiefahmad/sholat-reminder" target="_blank" style="color: #1b64d1; text-decoration: none;">latiefahmad</a>
+
+        <div class="muted center" id="locInfo" style="margin-top: 8px;">Lokasi: -</div>
+        <div class="muted center" id="methodInfo" style="margin-top: 3px;">Metode: -, Madzhab: -</div>
+
+        <div class="copyright center">
+          <span>(c) 2025 </span>
+          <a href="https://github.com/latiefahmad/sholat-reminder" target="_blank">latiefahmad</a>
         </div>
       </div>
     </div>
