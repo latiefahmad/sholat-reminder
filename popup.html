@@ -20,12 +20,13 @@
 
       body {
         margin: 0;
-        width: min(390px, 100vw);
+        width: 380px;
         font-family: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
         color: var(--text);
         background:
           radial-gradient(120% 100% at 100% 0%, #f9f4e5 0%, transparent 60%),
           linear-gradient(160deg, var(--bg-1), var(--bg-2));
+        overflow-x: hidden;
       }
 
       .wrap { padding: 14px; }
@@ -68,6 +69,9 @@
         font-size: 12px;
         font-weight: 700;
         white-space: nowrap;
+        min-width: 86px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
       }
 
       .row {
@@ -79,6 +83,7 @@
       }
 
       .row + .row { border-top: 1px dashed #e7dbc0; }
+      .row div:last-child { font-variant-numeric: tabular-nums; }
 
       label {
         display: block;
@@ -137,6 +142,7 @@
         font-weight: 700;
         cursor: pointer;
       }
+      .btn.full { width: 100%; margin-top: 8px; background: #2d8a67; }
 
       .btn:disabled { opacity: .65; cursor: default; }
 
@@ -145,6 +151,7 @@
       .copyright a { color: var(--accent); text-decoration: none; }
 
       @media (max-width: 360px) {
+        body { width: 100vw; }
         .grid,
         .footer {
           grid-template-columns: 1fr;
@@ -221,6 +228,7 @@
           <button class="btn" id="btnGeo">Ambil Lokasi</button>
           <button class="btn" id="btnSave">Simpan</button>
         </div>
+        <button class="btn full" id="btnTest">Tes Notifikasi Sekarang</button>
 
         <div class="muted center" id="locInfo" style="margin-top: 8px;">Lokasi: -</div>
         <div class="muted center" id="methodInfo" style="margin-top: 3px;">Metode: -, Madzhab: -</div>

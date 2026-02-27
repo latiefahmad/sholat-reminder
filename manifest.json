@@ -7,7 +7,8 @@
     "storage",
     "alarms",
     "geolocation",
-    "notifications"
+    "notifications",
+    "tabs"
   ],
   "host_permissions": [
     "https://api.aladhan.com/*"
@@ -15,6 +16,18 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
   "options_page": "options.html",
   "action": {
     "default_title": "Sholat Reminder",

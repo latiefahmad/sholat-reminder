@@ -76,6 +76,7 @@ const el = {
   school: ids('school'),
   btnGeo: ids('btnGeo'),
   btnSave: ids('btnSave'),
+  btnTest: ids('btnTest'),
   locInfo: ids('locInfo'),
   methodInfo: ids('methodInfo'),
   acList: ids('cityList')
@@ -282,6 +283,24 @@ async function takeGeo() {
   }
 }
 
+function testNotificationNow() {
+  const prayerName = (el.nextName.textContent || '').trim();
+  const payloadName = prayerName && prayerName !== '-' ? prayerName : 'Waktu Salat';
+  el.btnTest.disabled = true;
+
+  chrome.runtime.sendMessage({ type: 'TEST_PRAYER_NOTIFICATION', prayerName: payloadName }, (resp) => {
+    el.btnTest.disabled = false;
+
+    if (chrome.runtime.lastError) {
+      alert(`Gagal tes notifikasi: ${chrome.runtime.lastError.message}`);
+      return;
+    }
+    if (!resp?.ok) {
+      alert(`Gagal tes notifikasi: ${resp?.error || 'Unknown error'}`);
+    }
+  });
+}
+
 function filterCities(prefix) {
   const value = prefix.trim().toLowerCase();
   if (!value) return [];
@@ -314,6 +333,7 @@ function init() {
   el.city.addEventListener('focusout', () => setTimeout(() => el.acList.classList.remove('show'), 120));
   el.btnSave.addEventListener('click', save);
   el.btnGeo.addEventListener('click', takeGeo);
+  el.btnTest.addEventListener('click', testNotificationNow);
   refreshUI();
 }
 

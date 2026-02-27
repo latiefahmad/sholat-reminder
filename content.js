@@ -17,7 +17,11 @@ function ensureStyles() {
 }
 function showModal(prayerName, quote) {
   ensureStyles();
+  const existing = document.getElementById('sholat-reminder-overlay');
+  if (existing) existing.remove();
+
   const overlay = document.createElement('div');
+  overlay.id = 'sholat-reminder-overlay';
   overlay.className = 'sholat-overlay';
   const card = document.createElement('div');
   card.className = 'sholat-card';

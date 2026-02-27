@@ -4,11 +4,33 @@ const API_COORD = 'https://api.aladhan.com/v1/timings';
 
 const QUOTES = [
   'Sholat adalah tiang agama.',
-  'Sesungguhnya sholat mencegah dari perbuatan keji dan mungkar. (QS. 29:45)',
-  'Dirikanlah sholat untuk mengingat-Ku. (QS. 20:14)',
-  'Jangan tinggalkan sholat, karena ia cahaya bagi hati.',
-  'Amal pertama yang dihisab adalah sholat.'
+  'Amal pertama yang dihisab pada hari kiamat adalah sholat. (HR. Tirmidzi)',
+  'Sesungguhnya sholat mencegah dari perbuatan keji dan mungkar. (QS. Al-Ankabut: 45)',
+  'Dirikanlah sholat untuk mengingat-Ku. (QS. Taha: 14)',
+  'Peliharalah semua salat(mu), dan (peliharalah) salat wustha. (QS. Al-Baqarah: 238)',
+  'Dan perintahkanlah keluargamu melaksanakan sholat. (QS. Taha: 132)',
+  'Sesungguhnya sholat itu adalah kewajiban yang ditentukan waktunya atas orang beriman. (QS. An-Nisa: 103)',
+  'أَقِمِ الصَّلَاةَ لِذِكْرِي — Dirikanlah salat untuk mengingat-Ku. (QS. Taha: 14)',
+  'إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ وَالْمُنكَرِ — Salat mencegah dari perbuatan keji dan mungkar. (QS. Al-Ankabut: 45)',
+  'وَأَقِيمُوا الصَّلَاةَ — Dan dirikanlah salat. (QS. Al-Baqarah: 43)',
+  'حَافِظُوا عَلَى الصَّلَوَاتِ — Peliharalah semua salat(mu). (QS. Al-Baqarah: 238)',
+  'وَاسْجُدْ وَاقْتَرِبْ — Bersujudlah dan dekatkanlah diri (kepada Allah). (QS. Al-‘Alaq: 19)',
+  'Sholat tepat waktu adalah amal yang paling dicintai Allah. (HR. Bukhari & Muslim)',
+  'Ketika adzan berkumandang, mari tinggalkan sejenak urusan dunia.',
+  'Jangan tunda sholat, karena waktu tidak akan kembali.',
+  'Sholat adalah cahaya bagi hati dan ketenangan bagi jiwa.',
+  'Setiap sujud mendekatkan hamba kepada Rabb-nya.',
+  'Mulai lagi hari ini dengan menjaga sholat lima waktu.',
+  'اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ — Ya Allah, bantulah aku untuk mengingat-Mu, bersyukur kepada-Mu, dan beribadah dengan baik.',
+  'Semoga Allah memudahkan kita menjaga sholat di awal waktu.'
 ];
+const PRAYER_LABELS = {
+  Fajr: 'Subuh',
+  Dhuhr: 'Dzuhur',
+  Asr: 'Ashar',
+  Maghrib: 'Maghrib',
+  Isha: 'Isya'
+};
 
 const DEFAULT_SETTINGS = {
   city: 'Jakarta',
@@ -20,18 +42,45 @@ const DEFAULT_SETTINGS = {
   lng: null
 };
 
+let lastQuoteIndex = -1;
 function randomQuote() {
-  return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  if (QUOTES.length === 1) return QUOTES[0];
+  let idx = Math.floor(Math.random() * QUOTES.length);
+  while (idx === lastQuoteIndex) idx = Math.floor(Math.random() * QUOTES.length);
+  lastQuoteIndex = idx;
+  return QUOTES[idx];
 }
 
-function showPrayerNotification(prayerName) {
+function showPrayerNotification(prayerName, quote) {
   chrome.notifications.create(`pray-${Date.now()}`, {
     type: 'basic',
     iconUrl: 'icon-sholat.png',
     title: 'Pengingat Waktu Salat',
-    message: `${prayerName} sudah masuk. ${randomQuote()}`,
+    message: `${prayerName} sudah masuk. ${quote}`,
     priority: 2
   });
+}
+
+function showPrayerModalInTabs(prayerName, quote) {
+  chrome.tabs.query({}, (tabs) => {
+    if (chrome.runtime.lastError || !Array.isArray(tabs)) return;
+    for (const tab of tabs) {
+      if (!tab?.id) continue;
+      chrome.tabs.sendMessage(tab.id, {
+        type: 'SHOW_PRAYER_MODAL',
+        prayerName,
+        quote
+      }, () => {
+        void chrome.runtime.lastError;
+      });
+    }
+  });
+}
+
+function triggerPrayerReminder(prayerName) {
+  const quote = randomQuote();
+  showPrayerNotification(prayerName, quote);
+  showPrayerModalInTabs(prayerName, quote);
 }
 
 function nextMidnightPlus(minutes = 5) {
@@ -110,8 +159,9 @@ chrome.runtime.onStartup.addListener(scheduleTodayAlarms);
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name.startsWith('pray:')) {
-    const prayerName = alarm.name.split(':')[1];
-    showPrayerNotification(prayerName);
+    const prayerKey = alarm.name.split(':')[1];
+    const prayerName = PRAYER_LABELS[prayerKey] || prayerKey;
+    triggerPrayerReminder(prayerName);
     scheduleTodayAlarms();
     return;
   }
@@ -122,11 +172,17 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg?.type !== 'RESCHEDULE_PRAYERS') return;
+  if (msg?.type === 'RESCHEDULE_PRAYERS') {
+    scheduleTodayAlarms()
+      .then(() => sendResponse({ ok: true }))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
 
-  scheduleTodayAlarms()
-    .then(() => sendResponse({ ok: true }))
-    .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
 
-  return true;
+  if (msg?.type === 'TEST_PRAYER_NOTIFICATION') {
+    const prayerName = String(msg.prayerName || 'Waktu Salat').trim() || 'Waktu Salat';
+    triggerPrayerReminder(prayerName);
+    sendResponse({ ok: true });
+  }
 });
