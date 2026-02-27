@@ -62,18 +62,39 @@ function showPrayerNotification(prayerName, quote) {
 }
 
 function showPrayerModalInTabs(prayerName, quote) {
-  chrome.tabs.query({}, (tabs) => {
-    if (chrome.runtime.lastError || !Array.isArray(tabs)) return;
-    for (const tab of tabs) {
-      if (!tab?.id) continue;
-      chrome.tabs.sendMessage(tab.id, {
-        type: 'SHOW_PRAYER_MODAL',
-        prayerName,
-        quote
-      }, () => {
-        void chrome.runtime.lastError;
-      });
+  // Kirim ke tab aktif terlebih dahulu
+  chrome.tabs.query({ active: true, currentWindow: true }, (activeTabs) => {
+    if (chrome.runtime.lastError) return;
+    const activeTabIds = new Set();
+
+    if (Array.isArray(activeTabs)) {
+      for (const tab of activeTabs) {
+        if (!tab?.id || !tab.url) continue;
+        // Hanya kirim ke halaman http/https (bukan chrome://, about:, dll)
+        if (!tab.url.startsWith('http://') && !tab.url.startsWith('https://')) continue;
+        activeTabIds.add(tab.id);
+        chrome.tabs.sendMessage(tab.id, {
+          type: 'SHOW_PRAYER_MODAL',
+          prayerName,
+          quote
+        }, () => { void chrome.runtime.lastError; });
+      }
     }
+
+    // Kirim juga ke semua tab http/https lainnya
+    chrome.tabs.query({}, (allTabs) => {
+      if (chrome.runtime.lastError || !Array.isArray(allTabs)) return;
+      for (const tab of allTabs) {
+        if (!tab?.id || !tab.url) continue;
+        if (activeTabIds.has(tab.id)) continue; // sudah dikirim
+        if (!tab.url.startsWith('http://') && !tab.url.startsWith('https://')) continue;
+        chrome.tabs.sendMessage(tab.id, {
+          type: 'SHOW_PRAYER_MODAL',
+          prayerName,
+          quote
+        }, () => { void chrome.runtime.lastError; });
+      }
+    });
   });
 }
 
