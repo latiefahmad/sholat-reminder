@@ -1,6 +1,12 @@
-const API_CITY = 'https://api.aladhan.com/v1/timingsByCity';
-const API_COORD = 'https://api.aladhan.com/v1/timings';
+// popup.js
+const API_CITY   = 'https://api.aladhan.com/v1/timingsByCity';
+const API_COORD  = 'https://api.aladhan.com/v1/timings';
+const API_EQURAN = 'https://equran.id/api/v2/shalat';
+
 const DEFAULTS = {
+  apiSource: 'equran',
+  provinsi: 'DKI Jakarta',
+  kabkota: 'Kota Jakarta',
   city: 'Jakarta',
   country: 'Indonesia',
   method: 20,
@@ -70,16 +76,23 @@ const el = {
   tAsr: ids('tAsr'),
   tMaghrib: ids('tMaghrib'),
   tIsha: ids('tIsha'),
+  // aladhan fields (may be null in equran-only builds)
   city: ids('city'),
   country: ids('country'),
   method: ids('method'),
   school: ids('school'),
+  // equran fields
+  provinsiInfo: ids('provinsiInfo'),
+  // shared
   btnGeo: ids('btnGeo'),
   btnSave: ids('btnSave'),
   btnTest: ids('btnTest'),
   locInfo: ids('locInfo'),
   methodInfo: ids('methodInfo'),
-  acList: ids('cityList')
+  acList: ids('cityList'),
+  // sections
+  sectionAladhan: ids('sectionAladhan'),
+  sectionEquran: ids('sectionEquran')
 };
 
 const fmt2 = (n) => String(n).padStart(2, '0');
@@ -120,7 +133,46 @@ function fmtCountdown(ms) {
   return `${fmt2(h)}:${fmt2(m)}:${fmt2(s)}`;
 }
 
-async function fetchTimings(stored) {
+// ── Fetch timings ────────────────────────────────────────────────────────────
+
+async function fetchTimingsEquran(stored) {
+  const now = new Date();
+  const res = await fetch(API_EQURAN, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      provinsi: stored.provinsi || DEFAULTS.provinsi,
+      kabkota: stored.kabkota || DEFAULTS.kabkota,
+      bulan: now.getMonth() + 1,
+      tahun: now.getFullYear()
+    })
+  });
+  if (!res.ok) throw new Error(`eQuran API ${res.status}`);
+  const json = await res.json();
+  if (!json?.data?.jadwal) throw new Error('eQuran: no jadwal');
+  const entry = json.data.jadwal.find(j => j.tanggal === now.getDate());
+  if (!entry) throw new Error('eQuran: jadwal hari ini tidak ditemukan');
+
+  // Return in aladhan-compatible format + extra fields
+  return {
+    timings: {
+      Fajr: entry.subuh,
+      Dhuhr: entry.dzuhur,
+      Asr: entry.ashar,
+      Maghrib: entry.maghrib,
+      Isha: entry.isya,
+      Imsak: entry.imsak,
+      Sunrise: entry.terbit,
+      Dhuha: entry.dhuha
+    },
+    date: null, // eQuran doesn't provide Hijri date
+    source: 'equran',
+    kabkota: json.data.kabkota,
+    provinsi: json.data.provinsi
+  };
+}
+
+async function fetchTimingsAladhan(stored) {
   const hasCoords = stored.useCoords && typeof stored.lat === 'number' && typeof stored.lng === 'number';
   const url = hasCoords
     ? `${API_COORD}?latitude=${stored.lat}&longitude=${stored.lng}&method=${encodeURIComponent(stored.method)}&school=${encodeURIComponent(stored.school)}`
@@ -130,15 +182,25 @@ async function fetchTimings(stored) {
   if (!res.ok) throw new Error(`API ${res.status}`);
   const json = await res.json();
   if (!json?.data?.timings) throw new Error('Timings empty');
-  return { timings: json.data.timings, date: json.data.date };
+  return { timings: json.data.timings, date: json.data.date, source: 'aladhan' };
 }
+
+async function fetchTimings(stored) {
+  if (stored.apiSource === 'aladhan') return fetchTimingsAladhan(stored);
+  return fetchTimingsEquran(stored);
+}
+
+// ── UI helpers ───────────────────────────────────────────────────────────────
 
 function fillTable(timings) {
   const safe = (key) => (timings && timings[key] ? String(timings[key]).substring(0, 5) : '--:--');
   el.tImsak.textContent = safe('Imsak');
   el.tFajr.textContent = safe('Fajr');
   el.tSunrise.textContent = safe('Sunrise');
-  el.tDhuha.textContent = timings?.Sunrise ? addHourToTime(timings.Sunrise) : '--:--';
+  // eQuran provides Dhuha directly; aladhan: derive from Sunrise+1h
+  el.tDhuha.textContent = timings?.Dhuha
+    ? String(timings.Dhuha).substring(0, 5)
+    : (timings?.Sunrise ? addHourToTime(timings.Sunrise) : '--:--');
   el.tDhuhr.textContent = safe('Dhuhr');
   el.tAsr.textContent = safe('Asr');
   el.tMaghrib.textContent = safe('Maghrib');
@@ -146,12 +208,15 @@ function fillTable(timings) {
 }
 
 function computeNext(timings) {
-  const sunriseTime = timings.Sunrise ? addHourToTime(timings.Sunrise) : null;
+  const dhuhaTime = timings.Dhuha
+    ? String(timings.Dhuha).substring(0, 5)
+    : (timings.Sunrise ? addHourToTime(timings.Sunrise) : null);
+
   const items = [
     ['Imsak', timings.Imsak],
     ['Subuh', timings.Fajr],
     ['Terbit', timings.Sunrise],
-    ['Dhuha', sunriseTime],
+    ['Dhuha', dhuhaTime],
     ['Dzuhur', timings.Dhuhr],
     ['Ashar', timings.Asr],
     ['Maghrib', timings.Maghrib],
@@ -192,35 +257,55 @@ function startCountdown(targetMs) {
   timer = setInterval(tick, 1000);
 }
 
+function showSection(source) {
+  if (el.sectionAladhan) el.sectionAladhan.style.display = source === 'aladhan' ? '' : 'none';
+  if (el.sectionEquran)  el.sectionEquran.style.display  = source === 'equran'  ? '' : 'none';
+}
+
+// ── Main refresh ─────────────────────────────────────────────────────────────
+
 async function refreshUI() {
   try {
     const stored = await getSettings();
     const hasCoords = stored.useCoords && typeof stored.lat === 'number' && typeof stored.lng === 'number';
+    const source = stored.apiSource || 'equran';
 
     el.today.textContent = todayStr();
-    el.city.value = stored.city;
-    el.country.value = stored.country;
-    el.method.value = String(stored.method);
-    el.school.value = String(stored.school);
-    el.locInfo.textContent = hasCoords
-      ? `Lokasi: ${stored.lat.toFixed(4)}, ${stored.lng.toFixed(4)}`
-      : `Lokasi: ${stored.city}, ${stored.country}`;
+    showSection(source);
 
-    const methodName = METHOD_NAMES[stored.method] || `ID ${stored.method}`;
-    const schoolName = stored.school === 0 ? 'Shafi' : 'Hanafi';
-    el.methodInfo.textContent = `Metode: ${methodName}, Madzhab: ${schoolName}`;
+    if (source === 'aladhan') {
+      if (el.city) el.city.value = stored.city;
+      if (el.country) el.country.value = stored.country;
+      if (el.method) el.method.value = String(stored.method);
+      if (el.school) el.school.value = String(stored.school);
+      el.locInfo.textContent = hasCoords
+        ? `Lokasi: ${stored.lat.toFixed(4)}, ${stored.lng.toFixed(4)}`
+        : `Lokasi: ${stored.city}, ${stored.country}`;
+      const methodName = METHOD_NAMES[stored.method] || `ID ${stored.method}`;
+      const schoolName = stored.school === 0 ? 'Shafi' : 'Hanafi';
+      el.methodInfo.textContent = `Metode: ${methodName}, Madzhab: ${schoolName}`;
+    } else {
+      el.locInfo.textContent = `Lokasi: ${stored.kabkota}, ${stored.provinsi}`;
+      el.methodInfo.textContent = 'Sumber: eQuran.id (Kemenag RI)';
+      if (el.provinsiInfo) el.provinsiInfo.textContent = `${stored.kabkota}, ${stored.provinsi}`;
+    }
 
     const data = await fetchTimings(stored);
     const timings = data.timings;
     const date = data.date;
 
-    const weekdayEn = date?.hijri?.weekday?.en || '-';
-    const monthEn = date?.hijri?.month?.en || '-';
-    const hijriWeekday = HIJRI_WEEKDAYS_ID[weekdayEn] || weekdayEn;
-    const hijriMonth = HIJRI_MONTHS_ID[monthEn] || monthEn;
-    const hijriDay = date?.hijri?.day || '-';
-    const hijriYear = date?.hijri?.year || '-';
-    el.hijriDate.textContent = `${hijriWeekday}, ${hijriDay} ${hijriMonth} ${hijriYear} H`;
+    // Hijri date (only available from aladhan)
+    if (date) {
+      const weekdayEn = date?.hijri?.weekday?.en || '-';
+      const monthEn = date?.hijri?.month?.en || '-';
+      const hijriWeekday = HIJRI_WEEKDAYS_ID[weekdayEn] || weekdayEn;
+      const hijriMonth = HIJRI_MONTHS_ID[monthEn] || monthEn;
+      const hijriDay = date?.hijri?.day || '-';
+      const hijriYear = date?.hijri?.year || '-';
+      el.hijriDate.textContent = `${hijriWeekday}, ${hijriDay} ${hijriMonth} ${hijriYear} H`;
+    } else {
+      el.hijriDate.textContent = '';
+    }
 
     fillTable(timings);
     const next = computeNext(timings);
@@ -250,18 +335,22 @@ async function refreshUI() {
   }
 }
 
+// ── Save (aladhan) ───────────────────────────────────────────────────────────
+
 async function save() {
   const city = el.city.value.trim() || DEFAULTS.city;
   const country = el.country.value.trim() || DEFAULTS.country;
   const method = Number(el.method.value);
   const school = Number(el.school.value);
-  await setSettings({ city, country, method, school, useCoords: false, lat: null, lng: null });
+  await setSettings({ apiSource: 'aladhan', city, country, method, school, useCoords: false, lat: null, lng: null });
   await refreshUI();
   chrome.runtime.sendMessage({ type: 'RESCHEDULE_PRAYERS' }, () => {});
 }
 
+// ── Geolocation (aladhan only) ───────────────────────────────────────────────
+
 async function takeGeo() {
-  el.btnGeo.disabled = true;
+  if (el.btnGeo) el.btnGeo.disabled = true;
   try {
     const pos = await new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -273,15 +362,17 @@ async function takeGeo() {
     const lat = Number(pos.coords.latitude);
     const lng = Number(pos.coords.longitude);
     const current = await getSettings();
-    await setSettings({ ...current, useCoords: true, lat, lng });
+    await setSettings({ ...current, apiSource: 'aladhan', useCoords: true, lat, lng });
     await refreshUI();
     chrome.runtime.sendMessage({ type: 'RESCHEDULE_PRAYERS' }, () => {});
   } catch (e) {
     alert(`Gagal ambil lokasi: ${e.message}\nPastikan izin lokasi diizinkan untuk Chrome.`);
   } finally {
-    el.btnGeo.disabled = false;
+    if (el.btnGeo) el.btnGeo.disabled = false;
   }
 }
+
+// ── Test notification ────────────────────────────────────────────────────────
 
 function testNotificationNow() {
   const prayerName = (el.nextName.textContent || '').trim();
@@ -300,6 +391,8 @@ function testNotificationNow() {
     }
   });
 }
+
+// ── Autocomplete (aladhan city) ──────────────────────────────────────────────
 
 function filterCities(prefix) {
   const value = prefix.trim().toLowerCase();
@@ -328,11 +421,13 @@ function renderAc(list) {
   el.acList.classList.add('show');
 }
 
+// ── Init ─────────────────────────────────────────────────────────────────────
+
 function init() {
-  el.city.addEventListener('input', () => renderAc(filterCities(el.city.value)));
-  el.city.addEventListener('focusout', () => setTimeout(() => el.acList.classList.remove('show'), 120));
-  el.btnSave.addEventListener('click', save);
-  el.btnGeo.addEventListener('click', takeGeo);
+  if (el.city) el.city.addEventListener('input', () => renderAc(filterCities(el.city.value)));
+  if (el.city) el.city.addEventListener('focusout', () => setTimeout(() => el.acList && el.acList.classList.remove('show'), 120));
+  if (el.btnSave) el.btnSave.addEventListener('click', save);
+  if (el.btnGeo) el.btnGeo.addEventListener('click', takeGeo);
   el.btnTest.addEventListener('click', testNotificationNow);
   refreshUI();
 }

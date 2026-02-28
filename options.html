@@ -26,12 +26,14 @@
 
       .container { max-width: 760px; margin: 0 auto; }
       h1 { margin-top: 0; }
+      h3 { margin: 0 0 12px; }
 
       .card {
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 14px;
         padding: 16px;
+        margin-bottom: 16px;
       }
 
       .row {
@@ -64,6 +66,32 @@
       table { width: 100%; border-collapse: collapse; }
       th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee3cf; }
 
+      .section { display: none; }
+      .section.active { display: block; }
+
+      .tab-bar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      .tab-btn {
+        padding: 8px 18px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+
+      .tab-btn.active {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+      }
+
       @media (max-width: 600px) {
         body { padding: 14px; }
         .row { grid-template-columns: 1fr; margin-bottom: 14px; }
@@ -73,7 +101,43 @@
   <body>
     <div class="container">
       <h1>Sholat Reminder - Pengaturan</h1>
+
       <div class="card">
+        <h3>Sumber Data Jadwal</h3>
+        <div class="row">
+          <label>API Sumber</label>
+          <select id="apiSource">
+            <option value="equran">eQuran.id (Indonesia — Kemenag RI)</option>
+            <option value="aladhan">Aladhan.com (Seluruh Dunia)</option>
+          </select>
+        </div>
+        <p class="hint">
+          <strong>eQuran.id</strong>: Data resmi Kemenag RI, hanya untuk kota-kota di Indonesia. Pilih provinsi dan kabupaten/kota.<br>
+          <strong>Aladhan.com</strong>: Mendukung kota di seluruh dunia dengan berbagai metode perhitungan.
+        </p>
+      </div>
+
+      <!-- eQuran settings -->
+      <div class="card section" id="sectionEquran">
+        <h3>Pengaturan eQuran.id</h3>
+        <div class="row">
+          <label>Provinsi</label>
+          <select id="provinsi">
+            <option value="">Memuat...</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Kabupaten / Kota</label>
+          <select id="kabkota">
+            <option value="">Pilih provinsi dulu</option>
+          </select>
+        </div>
+        <div class="row"><div></div><button id="saveEquran">Simpan & Jadwalkan Ulang</button></div>
+      </div>
+
+      <!-- aladhan settings -->
+      <div class="card section" id="sectionAladhan">
+        <h3>Pengaturan Aladhan.com</h3>
         <div class="row"><label>Kota</label><input id="city" placeholder="Contoh: Jakarta" /></div>
         <div class="row"><label>Negara</label><input id="country" placeholder="Contoh: Indonesia" /></div>
         <div class="row">
@@ -95,11 +159,11 @@
             <option value="1">Hanafi</option>
           </select>
         </div>
-        <div class="row"><div></div><button id="save">Simpan & Jadwalkan Ulang</button></div>
+        <div class="row"><div></div><button id="saveAladhan">Simpan & Jadwalkan Ulang</button></div>
         <p class="hint">Anda dapat mengaktifkan geolokasi dari popup untuk jadwal berbasis koordinat.</p>
       </div>
 
-      <div class="card" style="margin-top: 16px;">
+      <div class="card">
         <h3>Jadwal Hari Ini</h3>
         <div id="todayTimes">Memuat...</div>
       </div>

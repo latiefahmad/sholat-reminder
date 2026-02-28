@@ -1,6 +1,11 @@
-// background.js (service worker) - v4.3
-const API_CITY = 'https://api.aladhan.com/v1/timingsByCity';
-const API_COORD = 'https://api.aladhan.com/v1/timings';
+// background.js (service worker) - v5.0
+// Supports two API sources:
+//   'equran'  → POST https://equran.id/api/v2/shalat  (Indonesia only, Kemenag data)
+//   'aladhan' → GET  https://api.aladhan.com/v1/timingsByCity  (worldwide)
+
+const API_EQURAN   = 'https://equran.id/api/v2/shalat';
+const API_CITY     = 'https://api.aladhan.com/v1/timingsByCity';
+const API_COORD    = 'https://api.aladhan.com/v1/timings';
 
 const QUOTES = [
   'Sholat adalah tiang agama.',
@@ -10,20 +15,21 @@ const QUOTES = [
   'Peliharalah semua salat(mu), dan (peliharalah) salat wustha. (QS. Al-Baqarah: 238)',
   'Dan perintahkanlah keluargamu melaksanakan sholat. (QS. Taha: 132)',
   'Sesungguhnya sholat itu adalah kewajiban yang ditentukan waktunya atas orang beriman. (QS. An-Nisa: 103)',
-  'أَقِمِ الصَّلَاةَ لِذِكْرِي — Dirikanlah salat untuk mengingat-Ku. (QS. Taha: 14)',
-  'إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ وَالْمُنكَرِ — Salat mencegah dari perbuatan keji dan mungkar. (QS. Al-Ankabut: 45)',
-  'وَأَقِيمُوا الصَّلَاةَ — Dan dirikanlah salat. (QS. Al-Baqarah: 43)',
-  'حَافِظُوا عَلَى الصَّلَوَاتِ — Peliharalah semua salat(mu). (QS. Al-Baqarah: 238)',
-  'وَاسْجُدْ وَاقْتَرِبْ — Bersujudlah dan dekatkanlah diri (kepada Allah). (QS. Al-‘Alaq: 19)',
+  'أَقِمِ الصَّلَاةَ لِذِكْرِي — Dirikanlah salat untuk mengingat-Ku. (QS. Taha: 14)',
+  'إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ وَالْمُنكَرِ — Salat mencegah dari perbuatan keji dan mungkar. (QS. Al-Ankabut: 45)',
+  'وَأَقِيمُوا الصَّلَاةَ — Dan dirikanlah salat. (QS. Al-Baqarah: 43)',
+  'حَافِظُوا عَلَى الصَّلَوَاتِ — Peliharalah semua salat(mu). (QS. Al-Baqarah: 238)',
+  'وَاسْجُدْ وَاقْتَرِبْ — Bersujudlah dan dekatkanlah diri (kepada Allah). (QS. Al-\'Alaq: 19)',
   'Sholat tepat waktu adalah amal yang paling dicintai Allah. (HR. Bukhari & Muslim)',
   'Ketika adzan berkumandang, mari tinggalkan sejenak urusan dunia.',
   'Jangan tunda sholat, karena waktu tidak akan kembali.',
   'Sholat adalah cahaya bagi hati dan ketenangan bagi jiwa.',
   'Setiap sujud mendekatkan hamba kepada Rabb-nya.',
   'Mulai lagi hari ini dengan menjaga sholat lima waktu.',
-  'اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ — Ya Allah, bantulah aku untuk mengingat-Mu, bersyukur kepada-Mu, dan beribadah dengan baik.',
+  'اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ — Ya Allah, bantulah aku untuk mengingat-Mu, bersyukur kepada-Mu, dan beribadah dengan baik.',
   'Semoga Allah memudahkan kita menjaga sholat di awal waktu.'
 ];
+
 const PRAYER_LABELS = {
   Fajr: 'Subuh',
   Dhuhr: 'Dzuhur',
@@ -33,6 +39,11 @@ const PRAYER_LABELS = {
 };
 
 const DEFAULT_SETTINGS = {
+  apiSource: 'equran',
+  // eQuran settings
+  provinsi: 'DKI Jakarta',
+  kabkota: 'Kota Jakarta',
+  // aladhan settings
   city: 'Jakarta',
   country: 'Indonesia',
   method: 20,
@@ -121,17 +132,69 @@ function parse24hToTodayMillis(timeStr) {
 
 const getSettings = () => new Promise((resolve) => chrome.storage.sync.get(DEFAULT_SETTINGS, resolve));
 
-async function fetchTimings(settings) {
+/**
+ * Fetch timings from eQuran.id API.
+ * Returns an object with keys: Fajr, Dhuhr, Asr, Maghrib, Isha, Imsak, Sunrise
+ */
+async function fetchTimingsEquran(settings) {
+  const now = new Date();
+  const bulan = now.getMonth() + 1;
+  const tahun = now.getFullYear();
+  const tanggal = now.getDate();
+
+  const res = await fetch(API_EQURAN, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      provinsi: settings.provinsi || DEFAULT_SETTINGS.provinsi,
+      kabkota: settings.kabkota || DEFAULT_SETTINGS.kabkota,
+      bulan,
+      tahun
+    })
+  });
+
+  if (!res.ok) throw new Error(`eQuran API ${res.status}`);
+  const json = await res.json();
+  if (!json?.data?.jadwal) throw new Error('eQuran: no jadwal');
+
+  // Find today's entry
+  const entry = json.data.jadwal.find((j) => j.tanggal === tanggal);
+  if (!entry) throw new Error(`eQuran: no entry for tanggal ${tanggal}`);
+
+  // Map to aladhan-compatible keys
+  return {
+    Fajr: entry.subuh,
+    Dhuhr: entry.dzuhur,
+    Asr: entry.ashar,
+    Maghrib: entry.maghrib,
+    Isha: entry.isya,
+    Imsak: entry.imsak,
+    Sunrise: entry.terbit
+  };
+}
+
+/**
+ * Fetch timings from aladhan.com API.
+ */
+async function fetchTimingsAladhan(settings) {
   const hasCoords = settings.useCoords && typeof settings.lat === 'number' && typeof settings.lng === 'number';
   const url = hasCoords
     ? `${API_COORD}?latitude=${settings.lat}&longitude=${settings.lng}&method=${encodeURIComponent(settings.method)}&school=${encodeURIComponent(settings.school)}&iso8601=true`
     : `${API_CITY}?city=${encodeURIComponent(settings.city)}&country=${encodeURIComponent(settings.country)}&method=${encodeURIComponent(settings.method)}&school=${encodeURIComponent(settings.school)}&iso8601=true`;
 
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`API ${res.status}`);
+  if (!res.ok) throw new Error(`aladhan API ${res.status}`);
   const json = await res.json();
-  if (!json?.data?.timings) throw new Error('No timings');
+  if (!json?.data?.timings) throw new Error('aladhan: No timings');
   return json.data.timings;
+}
+
+async function fetchTimings(settings) {
+  if (settings.apiSource === 'aladhan') {
+    return fetchTimingsAladhan(settings);
+  }
+  // Default: equran
+  return fetchTimingsEquran(settings);
 }
 
 async function scheduleTodayAlarms() {

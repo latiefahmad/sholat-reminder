@@ -150,6 +150,17 @@
       .copyright { margin-top: 12px; font-size: 11px; color: var(--muted); }
       .copyright a { color: var(--accent); text-decoration: none; }
 
+      .equran-info {
+        font-size: 12px;
+        color: #14553d;
+        margin-bottom: 8px;
+        padding: 6px 10px;
+        background: var(--accent-soft);
+        border-radius: 8px;
+        border: 1px solid #b8ddcd;
+        font-weight: 600;
+      }
+
       @media (max-width: 360px) {
         body { width: 100vw; }
         .grid,
@@ -190,44 +201,57 @@
       </div>
 
       <div class="card">
-        <div class="grid">
-          <div class="ac-wrap">
-            <label>Kota</label>
-            <input id="city" placeholder="Contoh: Malang" autocomplete="off" />
-            <div class="ac-list" id="cityList"></div>
+
+        <!-- ── eQuran section ── -->
+        <div id="sectionEquran">
+          <div class="equran-info" id="provinsiInfo">🕌 Memuat lokasi...</div>
+          <p class="muted" style="margin:0 0 8px;font-size:11px;">
+            Untuk mengubah kota, buka <strong>Pengaturan</strong> (klik kanan ikon → Opsi).
+          </p>
+        </div>
+
+        <!-- ── aladhan section ── -->
+        <div id="sectionAladhan">
+          <div class="grid">
+            <div class="ac-wrap">
+              <label>Kota</label>
+              <input id="city" placeholder="Contoh: Malang" autocomplete="off" />
+              <div class="ac-list" id="cityList"></div>
+            </div>
+            <div>
+              <label>Negara</label>
+              <input id="country" placeholder="Contoh: Indonesia" />
+            </div>
           </div>
-          <div>
-            <label>Negara</label>
-            <input id="country" placeholder="Contoh: Indonesia" />
+
+          <div class="grid" style="margin-top: 10px;">
+            <div>
+              <label>Metode</label>
+              <select id="method">
+                <option value="20">Moonsighting (Default)</option>
+                <option value="2">Karachi</option>
+                <option value="3">ISNA</option>
+                <option value="5">Egypt</option>
+                <option value="13">Umm Al-Qura</option>
+                <option value="15">Gulf</option>
+                <option value="1">MWL</option>
+              </select>
+            </div>
+            <div>
+              <label>Madzhab (Asr)</label>
+              <select id="school">
+                <option value="0">Shafi</option>
+                <option value="1">Hanafi</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="footer">
+            <button class="btn" id="btnGeo">Ambil Lokasi</button>
+            <button class="btn" id="btnSave">Simpan</button>
           </div>
         </div>
 
-        <div class="grid" style="margin-top: 10px;">
-          <div>
-            <label>Metode</label>
-            <select id="method">
-              <option value="20">Moonsighting (Default)</option>
-              <option value="2">Karachi</option>
-              <option value="3">ISNA</option>
-              <option value="5">Egypt</option>
-              <option value="13">Umm Al-Qura</option>
-              <option value="15">Gulf</option>
-              <option value="1">MWL</option>
-            </select>
-          </div>
-          <div>
-            <label>Madzhab (Asr)</label>
-            <select id="school">
-              <option value="0">Shafi</option>
-              <option value="1">Hanafi</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="footer">
-          <button class="btn" id="btnGeo">Ambil Lokasi</button>
-          <button class="btn" id="btnSave">Simpan</button>
-        </div>
         <button class="btn full" id="btnTest">Tes Notifikasi Sekarang</button>
 
         <div class="muted center" id="locInfo" style="margin-top: 8px;">Lokasi: -</div>
