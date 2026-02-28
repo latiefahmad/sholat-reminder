@@ -8,26 +8,70 @@ const API_CITY     = 'https://api.aladhan.com/v1/timingsByCity';
 const API_COORD    = 'https://api.aladhan.com/v1/timings';
 
 const QUOTES = [
+  // ── Al-Qur'an ──────────────────────────────────────────────────────────────
   'Sholat adalah tiang agama.',
-  'Amal pertama yang dihisab pada hari kiamat adalah sholat. (HR. Tirmidzi)',
   'Sesungguhnya sholat mencegah dari perbuatan keji dan mungkar. (QS. Al-Ankabut: 45)',
   'Dirikanlah sholat untuk mengingat-Ku. (QS. Taha: 14)',
   'Peliharalah semua salat(mu), dan (peliharalah) salat wustha. (QS. Al-Baqarah: 238)',
   'Dan perintahkanlah keluargamu melaksanakan sholat. (QS. Taha: 132)',
   'Sesungguhnya sholat itu adalah kewajiban yang ditentukan waktunya atas orang beriman. (QS. An-Nisa: 103)',
+  'Dan mohonlah pertolongan dengan sabar dan sholat. (QS. Al-Baqarah: 45)',
+  'Sesungguhnya beruntunglah orang-orang yang beriman, yaitu orang-orang yang khusyuk dalam sholatnya. (QS. Al-Mu\'minun: 1-2)',
+  'Dan dirikanlah sholat, tunaikanlah zakat, dan rukuklah beserta orang-orang yang rukuk. (QS. Al-Baqarah: 43)',
+  'Maka apabila kamu telah menyelesaikan sholat, ingatlah Allah di waktu berdiri, di waktu duduk, dan di waktu berbaring. (QS. An-Nisa: 103)',
+  'Sesungguhnya sholat itu berat, kecuali bagi orang-orang yang khusyuk. (QS. Al-Baqarah: 45)',
+  'Dan bertasbihlah dengan memuji Tuhanmu sebelum terbit matahari dan sebelum terbenamnya. (QS. Taha: 130)',
+
+  // ── Hadits ─────────────────────────────────────────────────────────────────
+  'Amal pertama yang dihisab pada hari kiamat adalah sholat. (HR. Tirmidzi)',
+  'Sholat tepat waktu adalah amal yang paling dicintai Allah. (HR. Bukhari & Muslim)',
+  'Perbedaan antara seorang muslim dan orang kafir adalah meninggalkan sholat. (HR. Muslim)',
+  'Barangsiapa menjaga sholat, maka sholat itu akan menjadi cahaya, bukti, dan keselamatan baginya di hari kiamat. (HR. Ahmad)',
+  'Sholat adalah mi\'raj-nya orang mukmin.',
+  'Jadikanlah sholat sebagai penolongmu, sesungguhnya sholat itu berat kecuali bagi orang yang khusyuk. (HR. Bukhari)',
+  'Apabila seseorang di antara kamu sholat, maka sesungguhnya ia sedang bermunajat kepada Tuhannya. (HR. Bukhari)',
+  'Sholat adalah tiang agama; barangsiapa mendirikannya, maka ia telah menegakkan agama. (HR. Baihaqi)',
+
+  // ── Ayat Arab ──────────────────────────────────────────────────────────────
   'أَقِمِ الصَّلَاةَ لِذِكْرِي — Dirikanlah salat untuk mengingat-Ku. (QS. Taha: 14)',
   'إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ وَالْمُنكَرِ — Salat mencegah dari perbuatan keji dan mungkar. (QS. Al-Ankabut: 45)',
   'وَأَقِيمُوا الصَّلَاةَ — Dan dirikanlah salat. (QS. Al-Baqarah: 43)',
   'حَافِظُوا عَلَى الصَّلَوَاتِ — Peliharalah semua salat(mu). (QS. Al-Baqarah: 238)',
   'وَاسْجُدْ وَاقْتَرِبْ — Bersujudlah dan dekatkanlah diri (kepada Allah). (QS. Al-\'Alaq: 19)',
-  'Sholat tepat waktu adalah amal yang paling dicintai Allah. (HR. Bukhari & Muslim)',
+  'اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ — Ya Allah, bantulah aku untuk mengingat-Mu, bersyukur kepada-Mu, dan beribadah dengan baik.',
+
+  // ── Motivasi & Renungan ────────────────────────────────────────────────────
   'Ketika adzan berkumandang, mari tinggalkan sejenak urusan dunia.',
   'Jangan tunda sholat, karena waktu tidak akan kembali.',
   'Sholat adalah cahaya bagi hati dan ketenangan bagi jiwa.',
   'Setiap sujud mendekatkan hamba kepada Rabb-nya.',
   'Mulai lagi hari ini dengan menjaga sholat lima waktu.',
-  'اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ — Ya Allah, bantulah aku untuk mengingat-Mu, bersyukur kepada-Mu, dan beribadah dengan baik.',
-  'Semoga Allah memudahkan kita menjaga sholat di awal waktu.'
+  'Semoga Allah memudahkan kita menjaga sholat di awal waktu.',
+  'Lima menit untuk sholat, seumur hidup untuk ketenangan.',
+  'Sholat bukan beban, sholat adalah hadiah dari Allah untuk hamba-Nya.',
+  'Dalam sujud ada ketenangan yang tidak bisa dibeli dengan apapun.',
+  'Ketika dunia terasa berat, sholat adalah tempat kembali yang paling nyaman.',
+  'Sholat adalah dialog antara hamba dan Penciptanya — jangan lewatkan.',
+  'Setiap rakaat adalah kesempatan untuk memulai kembali dengan lebih baik.',
+  'Orang yang menjaga sholatnya, Allah akan menjaga urusannya.',
+  'Sholat di awal waktu adalah tanda cinta kepada Allah.',
+  'Jika kamu merasa jauh dari Allah, periksa kembali sholatmu.',
+  'Sholat adalah obat terbaik untuk hati yang gelisah.',
+  'Berhentilah sejenak dari kesibukan dunia, dan berbicaralah dengan Allah.',
+  'Sholat mengajarkan kita bahwa ada yang lebih penting dari pekerjaan kita.',
+  'Setiap langkah menuju tempat sholat, Allah catat sebagai kebaikan.',
+  'Sholat adalah investasi terbaik untuk kehidupan dunia dan akhirat.',
+  'Jangan biarkan kesibukan dunia menghalangimu dari mengingat Allah.',
+  'Dalam setiap sholat, ada doa yang mungkin langsung dikabulkan Allah.',
+  'Sholat adalah cara Allah memanggil kita untuk kembali kepada-Nya.',
+  'Ketika kamu sholat, seluruh alam semesta berdoa bersamamu.',
+  'Sholat adalah benteng dari godaan syaitan dan keburukan nafsu.',
+  'Tidak ada yang lebih indah dari hati yang tenang setelah sholat.',
+  'Sholat mengajarkan disiplin, kesabaran, dan keikhlasan sekaligus.',
+  'Setiap sholat adalah kesempatan baru untuk memohon ampunan Allah.',
+  'Jangan tunggu sempurna untuk sholat — sholatlah, dan Allah akan menyempurnakanmu.',
+  'Sholat adalah tanda syukur atas nikmat hidup yang Allah berikan.',
+  'Dalam keheningan sholat, kamu akan menemukan jawaban atas semua pertanyaanmu.'
 ];
 
 const PRAYER_LABELS = {
