@@ -2,7 +2,6 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pengingat Waktu Salat</title>
     <style>
       :root {
@@ -18,145 +17,219 @@
 
       * { box-sizing: border-box; }
 
-      body {
+      html, body {
         margin: 0;
-        width: 380px;
-        font-family: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
-        color: var(--text);
-        background:
-          radial-gradient(120% 100% at 100% 0%, #f9f4e5 0%, transparent 60%),
-          linear-gradient(160deg, var(--bg-1), var(--bg-2));
-        overflow-x: hidden;
+        padding: 0;
       }
 
-      .wrap { padding: 14px; }
+      body {
+        width: 360px;
+        min-width: 360px;
+        max-width: 360px;
+        font-family: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
+        color: var(--text);
+        background: linear-gradient(160deg, var(--bg-1), var(--bg-2));
+        overflow: hidden;
+      }
+
+      .wrap {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 580px;
+        overflow: hidden;
+      }
 
       .header {
         text-align: center;
-        padding: 14px;
-        border-radius: 16px;
+        padding: 10px 12px;
+        border-radius: 14px;
         background: linear-gradient(120deg, #fff7df, #f7ecd2);
         border: 1px solid var(--card-border);
+        flex-shrink: 0;
       }
 
-      .header-title { font-size: 17px; font-weight: 800; }
-      .subtle { font-size: 12px; color: var(--muted); margin-top: 4px; }
+      .header-title { font-size: 15px; font-weight: 800; line-height: 1.2; }
+      .subtle { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.35; }
 
       .card {
-        margin-top: 10px;
-        padding: 12px;
+        padding: 10px 12px;
         border-radius: 14px;
         background: var(--card);
         border: 1px solid var(--card-border);
+        flex-shrink: 0;
       }
 
       .next-row {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
         gap: 10px;
       }
 
-      .title { font-size: 18px; font-weight: 800; margin-top: 3px; }
-      .muted { font-size: 12px; color: var(--muted); }
+      .title { font-size: 20px; font-weight: 800; margin-top: 1px; line-height: 1.2; }
+      .muted { font-size: 11px; color: var(--muted); }
+      #nextTime { font-size: 12px; font-weight: 700; color: var(--text); }
 
       .pill {
         background: var(--accent-soft);
         color: #14553d;
         border-radius: 999px;
         border: 1px solid #b8ddcd;
-        padding: 4px 10px;
-        font-size: 12px;
-        font-weight: 700;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 800;
         white-space: nowrap;
-        min-width: 86px;
+        min-width: 88px;
         text-align: center;
         font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
       }
 
-      .row {
+      .tabs {
+        display: flex;
+        gap: 4px;
+        background: #e7dcc3;
+        border-radius: 11px;
+        padding: 4px;
+        flex-shrink: 0;
+      }
+
+      .tab {
+        flex: 1;
+        border: 0;
+        background: transparent;
+        border-radius: 8px;
+        padding: 7px 8px;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--muted);
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .tab.active {
+        background: #fff;
+        color: var(--text);
+        box-shadow: 0 1px 4px rgba(0,0,0,.12);
+      }
+
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+
+      .times {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+
+      .time-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 8px;
-        padding: 7px 0;
+        gap: 6px;
+        background: #faf5e8;
+        border: 1px solid #e7dbc0;
+        border-radius: 10px;
+        padding: 7px 10px;
+        font-size: 12px;
       }
 
-      .row + .row { border-top: 1px dashed #e7dbc0; }
-      .row div:last-child { font-variant-numeric: tabular-nums; }
+      .time-item .t-name { color: var(--muted); }
+      .time-item .t-val { font-weight: 800; font-variant-numeric: tabular-nums; }
+
+      .time-item.next {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+      }
+      .time-item.next .t-name { color: #14553d; font-weight: 800; }
 
       label {
         display: block;
-        margin-bottom: 5px;
-        font-size: 12px;
+        margin-bottom: 4px;
+        font-size: 11px;
         color: var(--muted);
+        font-weight: 700;
       }
 
       input,
       select {
         width: 100%;
         min-width: 0;
+        max-width: 100%;
         border: 1px solid #dfcfaf;
-        border-radius: 10px;
+        border-radius: 9px;
         background: #fff;
         color: var(--text);
-        padding: 10px;
-        font-size: 13px;
+        padding: 8px 9px;
+        font-size: 12px;
+        font-family: inherit;
       }
 
       .grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
       }
 
-      .ac-wrap { min-width: 0; }
+      .ac-wrap { min-width: 0; position: relative; }
 
       .ac-list {
-        margin-top: 6px;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        margin-top: 4px;
         border: 1px solid #dfcfaf;
         border-radius: 10px;
         background: #fff;
-        max-height: 160px;
+        max-height: 140px;
         overflow-y: auto;
         display: none;
+        z-index: 10;
+        box-shadow: 0 8px 20px rgba(0,0,0,.14);
       }
 
-      .ac-item { padding: 8px 10px; cursor: pointer; }
+      .ac-item { padding: 7px 10px; cursor: pointer; font-size: 12px; }
       .ac-item:hover { background: #f7efe0; }
       .ac-list.show { display: block; }
 
       .footer {
-        margin-top: 12px;
+        margin-top: 8px;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr 1fr;
         gap: 8px;
       }
 
       .btn {
         border: 0;
-        border-radius: 10px;
-        padding: 10px 12px;
+        border-radius: 9px;
+        padding: 9px 10px;
         background: var(--accent);
         color: #fff;
         font-weight: 700;
+        font-size: 12px;
         cursor: pointer;
+        font-family: inherit;
+        white-space: nowrap;
       }
       .btn.full { width: 100%; margin-top: 8px; background: #2d8a67; }
-
       .btn:disabled { opacity: .65; cursor: default; }
 
-      .center { text-align: center; }
-      .copyright { margin-top: 12px; font-size: 11px; color: var(--muted); }
-      .copyright a { color: var(--accent); text-decoration: none; }
-
-      @media (max-width: 360px) {
-        body { width: 100vw; }
-        .grid,
-        .footer {
-          grid-template-columns: 1fr;
-        }
+      .panel-scroll {
+        overflow-y: auto;
+        overflow-x: hidden;
+        min-height: 0;
       }
+      .panel-scroll::-webkit-scrollbar { width: 6px; }
+      .panel-scroll::-webkit-scrollbar-thumb { background: #d3c5a3; border-radius: 999px; }
+
+      .center { text-align: center; }
+      .info { line-height: 1.4; overflow-wrap: break-word; }
+      .footer-bar { flex-shrink: 0; }
+      .copyright { margin-top: 8px; font-size: 10px; color: var(--muted); }
+      .copyright a { color: var(--accent); text-decoration: none; }
     </style>
   </head>
   <body>
@@ -172,67 +245,79 @@
           <div>
             <div class="muted">Salat berikutnya</div>
             <div class="title" id="nextName">-</div>
-            <div class="muted" id="nextTime">-</div>
+            <div id="nextTime">-</div>
           </div>
           <div class="pill" id="countdown">--:--:--</div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="row"><div>Imsak</div><div id="tImsak">--:--</div></div>
-        <div class="row"><div>Subuh</div><div id="tFajr">--:--</div></div>
-        <div class="row"><div>Terbit</div><div id="tSunrise">--:--</div></div>
-        <div class="row"><div>Dhuha</div><div id="tDhuha">--:--</div></div>
-        <div class="row"><div>Dzuhur</div><div id="tDhuhr">--:--</div></div>
-        <div class="row"><div>Ashar</div><div id="tAsr">--:--</div></div>
-        <div class="row"><div>Maghrib</div><div id="tMaghrib">--:--</div></div>
-        <div class="row"><div>Isya</div><div id="tIsha">--:--</div></div>
+      <div class="tabs">
+        <button class="tab active" id="tab-jadwal" type="button">Jadwal</button>
+        <button class="tab" id="tab-pengaturan" type="button">Pengaturan</button>
       </div>
 
-      <div class="card">
-        <div class="grid">
-          <div class="ac-wrap">
-            <label>Kota</label>
-            <input id="city" placeholder="Contoh: Malang" autocomplete="off" />
-            <div class="ac-list" id="cityList"></div>
-          </div>
-          <div>
-            <label>Negara</label>
-            <input id="country" placeholder="Contoh: Indonesia" />
-          </div>
+      <div class="tab-panel active panel-scroll" id="panel-jadwal">
+        <div class="times">
+          <div class="time-item" data-prayer="Imsak"><span class="t-name">Imsak</span><span class="t-val" id="tImsak">--:--</span></div>
+          <div class="time-item" data-prayer="Subuh"><span class="t-name">Subuh</span><span class="t-val" id="tFajr">--:--</span></div>
+          <div class="time-item" data-prayer="Terbit"><span class="t-name">Terbit</span><span class="t-val" id="tSunrise">--:--</span></div>
+          <div class="time-item" data-prayer="Dhuha"><span class="t-name">Dhuha</span><span class="t-val" id="tDhuha">--:--</span></div>
+          <div class="time-item" data-prayer="Dzuhur"><span class="t-name">Dzuhur</span><span class="t-val" id="tDhuhr">--:--</span></div>
+          <div class="time-item" data-prayer="Ashar"><span class="t-name">Ashar</span><span class="t-val" id="tAsr">--:--</span></div>
+          <div class="time-item" data-prayer="Maghrib"><span class="t-name">Maghrib</span><span class="t-val" id="tMaghrib">--:--</span></div>
+          <div class="time-item" data-prayer="Isya"><span class="t-name">Isya</span><span class="t-val" id="tIsha">--:--</span></div>
         </div>
+      </div>
 
-        <div class="grid" style="margin-top: 10px;">
-          <div>
-            <label>Metode</label>
-            <select id="method">
-              <option value="20">Moonsighting (Default)</option>
-              <option value="2">Karachi</option>
-              <option value="3">ISNA</option>
-              <option value="5">Egypt</option>
-              <option value="13">Umm Al-Qura</option>
-              <option value="15">Gulf</option>
-              <option value="1">MWL</option>
-            </select>
+      <div class="tab-panel panel-scroll" id="panel-pengaturan">
+        <div class="card" style="margin-top:0;">
+          <div class="grid">
+            <div class="ac-wrap">
+              <label for="city">Kota</label>
+              <input id="city" placeholder="Contoh: Malang" autocomplete="off" />
+              <div class="ac-list" id="cityList"></div>
+            </div>
+            <div>
+              <label for="country">Negara</label>
+              <input id="country" placeholder="Contoh: Indonesia" />
+            </div>
           </div>
-          <div>
-            <label>Madzhab (Asr)</label>
-            <select id="school">
-              <option value="0">Shafi</option>
-              <option value="1">Hanafi</option>
-            </select>
+
+          <div class="grid" style="margin-top: 8px;">
+            <div>
+              <label for="method">Metode</label>
+              <select id="method">
+                <option value="20">Moonsighting</option>
+                <option value="2">Karachi</option>
+                <option value="3">ISNA</option>
+                <option value="5">Egypt</option>
+                <option value="13">Umm Al-Qura</option>
+                <option value="15">Gulf</option>
+                <option value="1">MWL</option>
+              </select>
+            </div>
+            <div>
+              <label for="school">Madzhab (Asr)</label>
+              <select id="school">
+                <option value="0">Shafi</option>
+                <option value="1">Hanafi</option>
+              </select>
+            </div>
           </div>
+
+          <div class="footer">
+            <button class="btn" id="btnGeo" type="button">Ambil Lokasi</button>
+            <button class="btn" id="btnSave" type="button">Simpan</button>
+          </div>
+
+          <div class="muted center info" id="locInfo" style="margin-top: 8px;">Lokasi: -</div>
+          <div class="muted center info" id="methodInfo" style="margin-top: 3px;">Metode: -, Madzhab: -</div>
         </div>
+      </div>
 
-        <div class="footer">
-          <button class="btn" id="btnGeo">Ambil Lokasi</button>
-          <button class="btn" id="btnSave">Simpan</button>
-        </div>
-        <button class="btn full" id="btnTest">Tes Notifikasi Sekarang</button>
-
-        <div class="muted center" id="locInfo" style="margin-top: 8px;">Lokasi: -</div>
-        <div class="muted center" id="methodInfo" style="margin-top: 3px;">Metode: -, Madzhab: -</div>
-
+      <div class="card footer-bar">
+        <button class="btn full" id="btnTest" type="button" style="margin-top:0;">Tes Notifikasi</button>
+        <div class="muted center info" id="scheduleInfo" style="margin-top: 8px;">Jadwal: -</div>
         <div class="copyright center">
           <span>(c) 2025 </span>
           <a href="https://github.com/latiefahmad/sholat-reminder" target="_blank">latiefahmad</a>
@@ -240,6 +325,7 @@
       </div>
     </div>
 
+    <script src="api.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>
